@@ -1,6 +1,6 @@
 # TechTracer
 
-An application for monitoring and analyzing network traffic, inspecting requests and responses, and visualizing network flow diagrams.
+An application for monitoring and analyzing network traffic, inspecting requests and responses, and visualizing resource Diagrams.
 
 ## Features
 
@@ -21,7 +21,7 @@ tech-tracer/
 │   ├── renderer/             # Renderer process code
 │   │   ├── html/             # HTML files
 │   │   │   ├── index.html    # Main application window
-│   │   │   ├── diagram.html  # Network flow diagram window
+│   │   │   ├── diagram.html  # Resource Diagram window
 │   │   │   └── details.html  # Request details window
 │   │   └── js/               # Renderer JavaScript files
 │   │       ├── renderer.js   # Main renderer script

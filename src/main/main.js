@@ -550,7 +550,7 @@ function createDiagramWindow() {
   let diagramWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: 'Network Flow Diagram',
+    title: 'Resource Diagram',
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'preload-diagram.js'),
       nodeIntegration: false,
