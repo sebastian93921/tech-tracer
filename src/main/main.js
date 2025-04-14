@@ -7,13 +7,33 @@ const { createCanvas, loadImage } = require('canvas');
 
 // Parse command line arguments
 let initialUrl = 'about:blank'; // Default URL
-const args = process.argv.slice(2);
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--url' && i + 1 < args.length) {
-    initialUrl = args[i + 1];
-    break;
+
+// Handle command line arguments differently depending on whether app is packaged
+function processCommandLineArgs() {
+  // Get the arguments
+  let args;
+  if (app.isPackaged) {
+    // For packaged app on macOS, arguments start from index 1
+    args = process.argv.slice(1);
+  } else {
+    // In development, arguments start from index 2
+    args = process.argv.slice(2);
+  }
+
+  console.log('Command line arguments:', args);
+
+  // Look for --url parameter
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--url' && i + 1 < args.length) {
+      initialUrl = args[i + 1];
+      console.log('Setting initial URL to:', initialUrl);
+      break;
+    }
   }
 }
+
+// Process arguments on startup
+processCommandLineArgs();
 
 let mainWindow;
 // Store multiple web views for tabbed browsing
