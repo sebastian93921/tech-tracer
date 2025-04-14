@@ -1,0 +1,49 @@
+.tech-database-section {
+  display: flex;
+  gap: 10px;
+}
+
+#tech-db-status {
+  background-color: #2a2a2a;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 15px;
+}
+
+#tech-db-status h3 {
+  margin-top: 0;
+  color: #ccc;
+}
+
+#tech-db-status-content {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tech-db-file {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #444;
+}
+
+.tech-db-file:last-child {
+  border-bottom: none;
+}
+
+.tech-db-section {
+  margin-bottom: 10px;
+}
+
+.tech-db-section h4 {
+  margin: 5px 0;
+  color: #ccc;
+}
+
+.tech-db-missing {
+  color: #ff6b6b;
+}
+
+.hidden {
+  display: none;
+} 

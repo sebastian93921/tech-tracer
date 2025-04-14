@@ -1,0 +1,96 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #1e1e1e;
+  color: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background-color: #333;
+  border-bottom: 1px solid #444;
+}
+.details-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.request-section, .response-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid #444;
+}
+.section-header {
+  font-weight: bold;
+  padding: 8px;
+  background-color: #2d2d2d;
+  border-bottom: 1px solid #444;
+}
+.section-tabs {
+  display: flex;
+  background-color: #252526;
+  border-bottom: 1px solid #444;
+}
+.section-tab {
+  padding: 8px 16px;
+  cursor: pointer;
+  border-right: 1px solid #444;
+}
+.section-tab.active {
+  background-color: #1e1e1e;
+}
+.section-content {
+  flex: 1;
+  overflow: auto;
+  padding: 0;
+  position: relative;
+}
+.content-view {
+  display: none;
+  padding: 8px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre;
+  tab-size: 2;
+}
+.content-view.active {
+  display: block;
+}
+.code-line {
+  display: flex;
+  align-items: flex-start;
+  min-height: 1.4em;
+}
+.line-number {
+  color: #858585;
+  text-align: right;
+  padding-right: 8px;
+  user-select: none;
+  min-width: 30px;
+}
+.line-content {
+  flex: 1;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Syntax highlighting */
+.string { color: #ce9178; }
+.number { color: #b5cea8; }
+.boolean { color: #569cd6; }
+.null { color: #569cd6; }
+.key { color: #9cdcfe; }
+.header-name { color: #9cdcfe; }
+.header-value { color: #ce9178; }
+.http-method { color: #dcdcaa; }
+.http-status { color: #4ec9b0; }
+.http-version { color: #569cd6; }

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Network Request Details</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <link rel="stylesheet" href="../css/details.css">
+</head>
+<body>
+  <div class="details-header">
+    <div id="requestUrl">Request Details</div>
+  </div>
+  <div class="details-body">
+    <div class="request-section">
+      <div class="section-header">Request Headers</div>
+      <div class="section-tabs">
+        <div class="section-tab active" data-target="request-pretty">Pretty</div>
+        <div class="section-tab" data-target="request-raw">Raw</div>
+      </div>
+      <div class="section-content">
+        <div class="content-view active" id="request-pretty"></div>
+        <div class="content-view" id="request-raw"></div>
+      </div>
+    </div>
+    <div class="response-section">
+      <div class="section-header">Response Headers</div>
+      <div class="section-tabs">
+        <div class="section-tab active" data-target="response-pretty">Pretty</div>
+        <div class="section-tab" data-target="response-raw">Raw</div>
+      </div>
+      <div class="section-content">
+        <div class="content-view active" id="response-pretty"></div>
+        <div class="content-view" id="response-raw"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/details-renderer.js"></script>
+</body>
+</html> 
