@@ -1,6 +1,6 @@
 # TechTracer Mini Browser
 
-An application for monitoring and analyzing network traffic, inspecting requests and responses, and visualizing resource Diagrams.
+It helps security researchers, and web professionals understand complex web architectures, troubleshoot network issues, and gain insights into the underlying technologies powering websites.
 
 ![preview](image.png)
 
