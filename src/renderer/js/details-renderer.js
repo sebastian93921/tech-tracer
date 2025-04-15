@@ -69,13 +69,10 @@ function formatHTTPRequest(request) {
   let result = '';
   let lineCount = 1;
   
-  // Get protocol version or use a fallback
-  const protocolVersion = request.protocol || (request.httpVersion ? `HTTP/${request.httpVersion}` : 'HTTP/1.1');
-  
   // Request line with HTTP version
   result += `<div class="code-line">
     <span class="line-number">${lineCount++}</span>
-    <span class="line-content"><span class="http-method">${request.method}</span> <span class="url">${request.url}</span> <span class="http-version">${protocolVersion}</span></span>
+    <span class="line-content"><span class="http-method">${request.method}</span> <span class="url">${request.url}</span></span>
   </div>`;
   
   // Headers
@@ -203,13 +200,10 @@ function formatHTTPResponse(response) {
     return '<div class="code-line"><span class="line-number">1</span><span class="line-content">[No Response]</span></div>';
   }
   
-  // Get protocol version or use a fallback
-  const protocolVersion = response.responseProtocol || response.protocol || (response.httpVersion ? `HTTP/${response.httpVersion}` : 'HTTP/1.1');
-  
   // Status line
   result += `<div class="code-line">
     <span class="line-number">${lineCount++}</span>
-    <span class="line-content"><span class="http-version">${protocolVersion}</span> <span class="http-status">${response.statusCode}</span></span>
+    <span class="line-content"><span class="http-status">${response.statusCode}</span></span>
   </div>`;
   
   // Headers
@@ -298,10 +292,7 @@ function formatHTTPResponse(response) {
 function formatRawRequest(details) {
   if (!details) return '';
   
-  // Get protocol version or use a fallback
-  const protocolVersion = details.protocol || (details.httpVersion ? `HTTP/${details.httpVersion}` : 'HTTP/1.1');
-  
-  let raw = `${details.method} ${details.url} ${protocolVersion}\n`;
+  let raw = `${details.method} ${details.url}\n`;
   
   if (details.requestHeaders) {
     Object.entries(details.requestHeaders).forEach(([key, value]) => {
@@ -360,10 +351,7 @@ function formatRawResponse(details) {
     return '[No Response]';
   }
   
-  // Get protocol version or use a fallback
-  const protocolVersion = details.responseProtocol || details.protocol || (details.httpVersion ? `HTTP/${details.httpVersion}` : 'HTTP/1.1');
-  
-  let raw = `${protocolVersion} ${details.statusCode}\n`;
+  let raw = `${details.statusCode}\n`;
   
   if (details.responseHeaders) {
     Object.entries(details.responseHeaders).forEach(([key, value]) => {

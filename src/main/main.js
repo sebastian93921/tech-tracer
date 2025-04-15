@@ -263,9 +263,7 @@ function createWebContentsView(url) {
       referrer: referer,
       timestamp: Date.now(),
       requestHeaders: details.requestHeaders || {},
-      uploadData: details.uploadData,
-      // Default protocol that will be updated later if available
-      protocol: 'HTTP/1.1'
+      uploadData: details.uploadData
     });
 
     // Track relationships between scripts and APIs
@@ -354,15 +352,6 @@ function createWebContentsView(url) {
       request.statusCode = details.statusCode;
       request.statusLine = details.statusLine;
       
-      // Determine response protocol version
-      if (details.httpVersion) {
-        request.responseProtocol = `HTTP/${details.httpVersion}`;
-      } else if (details.statusLine && details.statusLine.startsWith('HTTP/')) {
-        request.responseProtocol = details.statusLine.split(' ')[0];
-      } else {
-        request.responseProtocol = 'HTTP/1.1'; // Default fallback
-      }
-      
       pendingRequests.set(details.id, request);
     }
     callback({ cancel: false });
@@ -414,27 +403,6 @@ function createWebContentsView(url) {
         error: details.error,
         timestamp: Date.now()
       });
-      
-      pendingRequests.set(details.id, request);
-    }
-  });
-
-  // Detect protocol version when response headers are received
-  webViews[activeWebViewIndex].webContents.session.webRequest.onResponseStarted((details) => {
-    // Skip local file URLs
-    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
-      return;
-    }
-    
-    if (pendingRequests.has(details.id)) {
-      const request = pendingRequests.get(details.id);
-      
-      // Determine protocol version from details or use default
-      if (details.httpVersion) {
-        request.protocol = `HTTP/${details.httpVersion}`;
-      } else if (details.statusLine && details.statusLine.startsWith('HTTP/')) {
-        request.protocol = details.statusLine.split(' ')[0];
-      }
       
       pendingRequests.set(details.id, request);
     }

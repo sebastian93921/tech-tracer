@@ -16,8 +16,7 @@ const mockNetworkFunctions = {
       referrer: details.referrer || '',
       timestamp: Date.now(),
       requestHeaders: details.requestHeaders || {},
-      uploadData: details.uploadData,
-      protocol: 'HTTP/1.1'
+      uploadData: details.uploadData
     });
     
     return pendingRequests.get(details.id);
@@ -245,7 +244,7 @@ describe('Network Monitoring Tests', () => {
       const updateDetails = {
         id: '12345',
         statusCode: 200,
-        statusLine: 'HTTP/1.1 200 OK',
+        statusLine: '200 OK',
         responseHeaders: { 'Content-Type': 'application/json' }
       };
       
