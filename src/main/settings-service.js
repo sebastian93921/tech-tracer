@@ -17,7 +17,7 @@ const store = new Store({
       bypassList: ''
     },
     screenshot: {
-      showUrl: true
+      showUrl: false
     }
   }
 });

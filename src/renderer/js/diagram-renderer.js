@@ -5,6 +5,7 @@ const zoomOutButton = document.getElementById('zoomOut');
 const zoomResetButton = document.getElementById('zoomReset');
 const zoomLevelDisplay = document.getElementById('zoomLevel');
 const resetButton = document.getElementById('resetButton');
+const filterButtons = document.querySelectorAll('.filter-button');
 
 // Zoom and positioning variables
 let zoomLevel = 1;
@@ -13,6 +14,15 @@ let startX, startY, scrollLeft, scrollTop;
 const ZOOM_STEP = 0.1;
 const MAX_ZOOM = 2.0;
 const MIN_ZOOM = 0.5;
+
+// Filter state
+const activeFilters = {
+  script: true,
+  image: true,
+  style: true,
+  api: true,
+  html: true
+};
 
 // Apply zoom transformation
 function applyZoom() {
@@ -94,6 +104,54 @@ function initZoomControls() {
   applyZoom();
 }
 
+// Initialize filter buttons
+function initFilterButtons() {
+  filterButtons.forEach(button => {
+    const filterType = button.getAttribute('data-filter');
+    
+    button.addEventListener('click', () => {
+      // Toggle filter state
+      activeFilters[filterType] = !activeFilters[filterType];
+      
+      // Update button UI
+      if (activeFilters[filterType]) {
+        button.classList.add('active');
+      } else {
+        button.classList.remove('active');
+      }
+      
+      // Refresh diagram with current filters
+      applyFilters();
+    });
+  });
+}
+
+// Apply filters to the diagram
+function applyFilters() {
+  // Hide/show resources based on active filters
+  const resources = document.querySelectorAll('.resource');
+  
+  resources.forEach(resource => {
+    // Check which type this resource is
+    const resourceType = Array.from(resource.classList)
+      .find(cls => ['script', 'image', 'style', 'api', 'html'].includes(cls));
+    
+    if (resourceType && !activeFilters[resourceType]) {
+      // Hide the entire resource node if filter is inactive
+      const resourceNode = resource.closest('.resource-node');
+      if (resourceNode) {
+        resourceNode.style.display = 'none';
+      }
+    } else {
+      // Show the resource node if filter is active
+      const resourceNode = resource.closest('.resource-node');
+      if (resourceNode) {
+        resourceNode.style.display = 'block';
+      }
+    }
+  });
+}
+
 // Generate the flow diagram with domain view only
 function generateFlowDiagram(requestFlow) {
   diagramContainer.innerHTML = '';
@@ -108,6 +166,9 @@ function generateFlowDiagram(requestFlow) {
     // Generate domain-based view
     if (requestFlow && Object.keys(requestFlow).length) {
       generateDomainView(diagramContainer, requestFlow);
+      
+      // Apply current filters after generating the diagram
+      applyFilters();
     } else {
       diagramContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No domain-based flow data available.</div>';
     }
@@ -328,6 +389,7 @@ window.diagramAPI.onDiagramData((data) => {
 function initUI() {
   initZoomControls();
   initDragScroll();
+  initFilterButtons();
 }
 
 // Request initial data when the window loads

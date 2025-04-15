@@ -3,7 +3,6 @@ const path = require('path');
 const { URL } = require('url');
 const settingsService = require('./settings-service');
 const technologyService = require('./technology-service');
-const { createCanvas, loadImage } = require('canvas');
 
 // Parse command line arguments
 let initialUrl = 'about:blank'; // Default URL
@@ -880,59 +879,11 @@ ipcMain.handle('capture-screenshot', async () => {
       return { success: false, error: 'No active web view found' };
     }
     
-    // Get the current URL
-    const currentUrl = webViews[activeWebViewIndex].webContents.getURL();
-    
     // Capture the page as an image
-    const originalImage = await webViews[activeWebViewIndex].webContents.capturePage();
+    const image = await webViews[activeWebViewIndex].webContents.capturePage();
     
-    // Get image dimensions
-    const imageSize = originalImage.getSize();
-    
-    // Convert NativeImage to Buffer for canvas processing
-    const pngBuffer = originalImage.toPNG();
-    
-    // Load image into canvas
-    const img = await loadImage(pngBuffer);
-    const canvas = createCanvas(imageSize.width, imageSize.height);
-    const ctx = canvas.getContext('2d');
-    
-    // Draw the original image
-    ctx.drawImage(img, 0, 0);
-    
-    // Only add URL to the screenshot if the setting is enabled
-    if (settingsService.getScreenshotSettings().showUrl) {
-      // Calculate font size as a ratio of image height (approximately 3.5%)
-      const fontSize = Math.max(Math.round(imageSize.height * 0.035), 16);
-      
-      // Add URL text with font sized relative to image height
-      ctx.font = `${fontSize}px Arial`;
-      
-      // Calculate text width to position it on the right side
-      const textWidth = ctx.measureText(currentUrl).width;
-      const padding = Math.round(fontSize * 0.3);
-      const rectHeight = fontSize + padding * 2;
-      
-      // Position rectangle on the right side
-      const rightPadding = 10;
-      
-      // Add shadow/background for better readability against any background
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(imageSize.width - textWidth - padding * 2 - rightPadding, 10, textWidth + padding * 2, rectHeight);
-      
-      // Draw URL text aligned to the right
-      ctx.fillStyle = 'white';
-      ctx.fillText(currentUrl, imageSize.width - textWidth - padding - rightPadding, 10 + fontSize);
-    }
-    
-    // Convert canvas back to buffer
-    const modifiedImageBuffer = canvas.toBuffer('image/png');
-    
-    // Create a new NativeImage from the buffer
-    const modifiedImage = nativeImage.createFromBuffer(modifiedImageBuffer);
-    
-    // Copy to clipboard
-    clipboard.writeImage(modifiedImage);
+    // Copy to clipboard directly without adding watermark
+    clipboard.writeImage(image);
     
     return { success: true, message: 'Screenshot copied to clipboard' };
   } catch (error) {

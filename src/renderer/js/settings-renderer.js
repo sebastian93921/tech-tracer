@@ -9,9 +9,6 @@ const bypassListInput = document.getElementById('bypassList');
 const saveProxySettingsButton = document.getElementById('saveProxySettings');
 const testConnectionButton = document.getElementById('testConnection');
 
-// Screenshot settings elements
-const showUrlInScreenshotCheckbox = document.getElementById('showUrlInScreenshot');
-
 // Developer settings elements
 const openDevToolsButton = document.getElementById('openDevTools');
 
@@ -116,34 +113,6 @@ async function testProxyConnection() {
   }
 }
 
-// Load screenshot settings
-async function loadScreenshotSettings() {
-  try {
-    const settings = await window.electronAPI.getScreenshotSettings();
-    if (settings) {
-      showUrlInScreenshotCheckbox.checked = settings.showUrl !== false; // Default to true if not specified
-    }
-  } catch (error) {
-    console.error('Error loading screenshot settings:', error);
-  }
-}
-
-// Save screenshot settings
-async function saveScreenshotSettings() {
-  try {
-    const settings = {
-      showUrl: showUrlInScreenshotCheckbox.checked
-    };
-    
-    const result = await window.electronAPI.saveScreenshotSettings(settings);
-    if (result && result.success) {
-      console.log('Screenshot settings saved successfully');
-    }
-  } catch (error) {
-    console.error('Error saving screenshot settings:', error);
-  }
-}
-
 // Initialize settings module
 function initSettingsModule() {
   // Add event listeners for proxy settings
@@ -153,9 +122,6 @@ function initSettingsModule() {
 
   saveProxySettingsButton.addEventListener('click', saveProxySettings);
   testConnectionButton.addEventListener('click', testProxyConnection);
-
-  // Add event listener for screenshot settings
-  showUrlInScreenshotCheckbox.addEventListener('change', saveScreenshotSettings);
   
   // Add event listener for dev tools button
   openDevToolsButton.addEventListener('click', () => {
@@ -167,7 +133,6 @@ function initSettingsModule() {
 
   // Load settings
   loadProxySettings();
-  loadScreenshotSettings();
 }
 
 // Initialize when DOM is loaded
