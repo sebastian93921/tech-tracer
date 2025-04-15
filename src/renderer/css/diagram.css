@@ -368,11 +368,6 @@ button svg {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.filter-button.active {
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
 .filter-button:not(.active) {
   opacity: 0.5;
 }
