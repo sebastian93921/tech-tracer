@@ -20,23 +20,10 @@ tech-tracer/
 │   │   └── main.js           # Main application entry point
 │   ├── renderer/             # Renderer process code
 │   │   ├── html/             # HTML files
-│   │   │   ├── index.html    # Main application window
-│   │   │   ├── diagram.html  # Resource Diagram window
-│   │   │   └── details.html  # Request details window
 │   │   └── js/               # Renderer JavaScript files
-│   │       ├── renderer.js   # Main renderer script
-│   │       ├── diagram-renderer.js # Network diagram renderer
-│   │       └── details-renderer.js # Request details renderer
-│   ├── preload/              # Preload scripts for contextBridge
-│   │   ├── preload.js        # Main preload script
-│   │   ├── preload-diagram.js # Diagram preload script
-│   │   ├── diagram-preload.js # Alternate diagram preload script
-│   │   └── details-preload.js # Details preload script
+│   ├── preload/              # Preload scripts for contextBrid
 │   └── assets/               # Static assets
-│       ├── images/           # Image assets
-│       └── css/              # CSS files
-├── package.json              # Project configuration
-└── package-lock.json         # Package dependency lock
+└── package.json              # Project configuration
 ```
 
 ## Installation
