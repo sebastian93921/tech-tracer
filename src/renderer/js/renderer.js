@@ -7,6 +7,8 @@ const reloadButton = document.querySelector('.reload-button');
 const backButton = document.querySelector('.back-button');
 const forwardButton = document.querySelector('.forward-button');
 const networkPanel = document.getElementById('networkPanel');
+const networkSearchFilter = document.getElementById('networkSearchFilter');
+const clearNetworkFilter = document.getElementById('clearNetworkFilter');
 const settingsPanel = document.getElementById('settingsPanel');
 const technologyPanel = document.getElementById('technologyPanel');
 const scanResults = document.getElementById('scanResults');
@@ -226,6 +228,15 @@ function addNetworkActivity(data) {
     });
     
     networkPanel.appendChild(requestEl);
+    
+    // Apply current filter to the new item
+    if (networkSearchFilter.value) {
+      const filterText = networkSearchFilter.value.toLowerCase();
+      const url = data.url.toLowerCase();
+      if (!url.includes(filterText)) {
+        requestEl.style.display = 'none';
+      }
+    }
   } else if (data.type === 'response') {
     // Get request timing
     const request = networkRequests.get(data.url);
@@ -241,6 +252,17 @@ function addNetworkActivity(data) {
           <span class="duration">${duration}ms</span>
           <span class="url">${data.url}</span>
         `;
+        
+        // Re-apply current filter after updating content
+        if (networkSearchFilter.value) {
+          const filterText = networkSearchFilter.value.toLowerCase();
+          const url = data.url.toLowerCase();
+          if (!url.includes(filterText)) {
+            requestEl.style.display = 'none';
+          } else {
+            requestEl.style.display = 'block';
+          }
+        }
       }
       
       // Clean up request tracking
@@ -716,3 +738,50 @@ function normalizeUrl(url) {
 }
 
 // Load proxy settings code has been moved to settings-renderer.js 
+
+// Function to filter network items
+function filterNetworkItems() {
+  const filterText = networkSearchFilter.value.toLowerCase();
+  const networkItems = document.querySelectorAll('.network-item');
+  
+  networkItems.forEach(item => {
+    const urlElement = item.querySelector('.url');
+    if (!urlElement) return;
+    
+    const url = urlElement.textContent.toLowerCase();
+    
+    if (filterText === '' || url.includes(filterText)) {
+      item.style.display = 'block';
+    } else {
+      item.style.display = 'none';
+    }
+  });
+}
+
+// Network filter input event
+networkSearchFilter.addEventListener('input', filterNetworkItems);
+
+// Clear filter button
+clearNetworkFilter.addEventListener('click', () => {
+  networkSearchFilter.value = '';
+  filterNetworkItems();
+  networkSearchFilter.focus();
+});
+
+// Keyboard support for network filter
+networkSearchFilter.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') {
+    // Clear filter on Escape key
+    networkSearchFilter.value = '';
+    filterNetworkItems();
+  } else if (event.key === 'Enter') {
+    // Focus first visible item on Enter key
+    const firstVisibleItem = Array.from(document.querySelectorAll('.network-item'))
+      .find(item => item.style.display !== 'none');
+    
+    if (firstVisibleItem) {
+      firstVisibleItem.focus();
+      firstVisibleItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+}); 

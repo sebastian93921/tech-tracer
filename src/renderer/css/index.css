@@ -80,6 +80,49 @@ body {
 .network-panel {
   display: none;
 }
+
+/* Network filter search box */
+.network-filter {
+  position: sticky;
+  top: -10px;
+  left: 0;
+  right: 0;
+  background-color: var(--panel-color);
+  padding: 8px;
+  margin: -10px -10px 10px -10px;
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  z-index: 5;
+}
+
+#networkSearchFilter {
+  flex: 1;
+  background-color: #3c3c3c;
+  border: 1px solid #555;
+  color: var(--text-color);
+  padding: 6px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+#networkSearchFilter:focus {
+  outline: none;
+  border-color: var(--brand-color);
+}
+
+#clearNetworkFilter {
+  background: none;
+  border: none;
+  color: var(--text-color-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 8px;
+}
+
+#clearNetworkFilter:hover {
+  color: var(--text-color);
+}
+
 .network-item {
   padding: 8px;
   border-bottom: 1px solid #333;

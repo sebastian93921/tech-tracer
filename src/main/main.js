@@ -240,7 +240,7 @@ function createWebContentsView(url) {
   // Monitor network requests
   webViews[activeWebViewIndex].webContents.session.webRequest.onBeforeRequest((details, callback) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       callback({ cancel: false });
       return;
     }
@@ -315,7 +315,7 @@ function createWebContentsView(url) {
 
   webViews[activeWebViewIndex].webContents.session.webRequest.onSendHeaders((details) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       return;
     }
     
@@ -341,7 +341,7 @@ function createWebContentsView(url) {
 
   webViews[activeWebViewIndex].webContents.session.webRequest.onHeadersReceived((details, callback) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       callback({ cancel: false });
       return;
     }
@@ -368,7 +368,7 @@ function createWebContentsView(url) {
 
   webViews[activeWebViewIndex].webContents.session.webRequest.onCompleted((details) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       return;
     }
     
@@ -396,7 +396,7 @@ function createWebContentsView(url) {
 
   webViews[activeWebViewIndex].webContents.session.webRequest.onErrorOccurred((details) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       return;
     }
     
@@ -420,7 +420,7 @@ function createWebContentsView(url) {
   // Detect protocol version when response headers are received
   webViews[activeWebViewIndex].webContents.session.webRequest.onResponseStarted((details) => {
     // Skip local file URLs
-    if (details.url.startsWith('file://')) {
+    if (details.url.startsWith('file://') || details.url.startsWith('devtools://')) {
       return;
     }
     
