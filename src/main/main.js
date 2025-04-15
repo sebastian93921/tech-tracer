@@ -545,7 +545,29 @@ ipcMain.handle('get-request-details', (_, id) => {
   return null;
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Clear cookies, cache, and storage before starting the app
+  console.log('Clearing browsing data before startup...');
+  const session = require('electron').session.defaultSession;
+  
+  try {
+    // Clear all cookies
+    await session.clearStorageData({
+      storages: ['cookies', 'localstorage', 'sessionstorage', 'indexdb', 'websql', 'cachestorage'],
+      quotas: ['temporary', 'persistent', 'syncable']
+    });
+    
+    // Clear HTTP cache
+    await session.clearCache();
+    
+    // Clear host resolver cache
+    await session.clearHostResolverCache();
+    
+    console.log('Successfully cleared all browsing data');
+  } catch (error) {
+    console.error('Error clearing browsing data:', error);
+  }
+  
   // Set up settings service IPC handlers
   settingsService.setupHandlers(ipcMain);
   technologyService.setupHandlers(ipcMain);
