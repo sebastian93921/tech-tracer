@@ -88,4 +88,4 @@ This app demonstrates monitoring and analyzing network traffic:
 
 ## License
 
-ISC 
+MIT
