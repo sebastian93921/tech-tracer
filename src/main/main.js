@@ -42,6 +42,8 @@ let activeWebViewIndex = 0;
 const pendingRequests = new Map();
 // Map to track script-initiated requests
 const scriptApiMap = new Map();
+// Map to correlate webRequest IDs with debugger requestIds
+const requestIdMap = new Map();
 
 function getDefaultViewBound(bounds){
   const browserToolHeight = 82;
@@ -438,6 +440,131 @@ function createWebContentsView(url) {
     }
   });
 
+  // Use debugger API to capture request and response bodies
+  try {
+    webViews[activeWebViewIndex].webContents.debugger.attach();
+    console.log('Debugger attached successfully');
+  } catch (err) {
+    console.log('Debugger attach failed:', err);
+  }
+
+  webViews[activeWebViewIndex].webContents.debugger.on('detach', (event, reason) => {
+    console.log('Debugger detached due to:', reason);
+  });
+
+  webViews[activeWebViewIndex].webContents.debugger.on('message', (event, method, params) => {
+    if (method === 'Network.requestWillBeSent') {
+      // Store a mapping between the URL and requestId for later correlation
+      if (params.request && params.request.url) {
+        // Use the URL + timestamp as a key to match with webRequest IDs
+        const urlKey = params.request.url + ':' + Date.now();
+        requestIdMap.set(urlKey, params.requestId);
+        
+        // Try to find matching webRequest in pendingRequests by URL
+        for (const [webRequestId, request] of pendingRequests.entries()) {
+          if (request.url === params.request.url && !request.debuggerRequestId) {
+            // Found a match, link the two IDs
+            request.debuggerRequestId = params.requestId;
+            pendingRequests.set(webRequestId, request);
+            break;
+          }
+        }
+        
+        // Store request data if it exists
+        if (params.request.postData) {
+          // We'll check for matching requests when response is received
+          // For now store the request body with the debugger ID
+          pendingRequests.forEach(request => {
+            if (request.url === params.request.url && !request.requestBody) {
+              request.requestBody = params.request.postData;
+            }
+          });
+        }
+      }
+    }
+    
+    if (method === 'Network.responseReceived') {
+      const requestId = params.requestId;
+      const responseUrl = params.response && params.response.url;
+      
+      // Try to find the corresponding webRequest
+      let matchingWebRequestId = null;
+      for (const [webRequestId, request] of pendingRequests.entries()) {
+        if (request.debuggerRequestId === requestId || 
+            (responseUrl && request.url === responseUrl)) {
+          matchingWebRequestId = webRequestId;
+          break;
+        }
+      }
+      
+      if (matchingWebRequestId) {
+        // Get the corresponding request
+        webViews[activeWebViewIndex].webContents.debugger.sendCommand('Network.getResponseBody', { requestId })
+          .then(response => {
+            if (pendingRequests.has(matchingWebRequestId)) {
+              const request = pendingRequests.get(matchingWebRequestId);
+              request.responseBody = response.body;
+              request.responseBodyBase64Encoded = response.base64Encoded;
+              pendingRequests.set(matchingWebRequestId, request);
+            }
+          })
+          .catch(error => {
+            // Don't log for common errors (no response body available)
+            if (!error.message.includes('No resource with given identifier found') && 
+                !error.message.includes('No data found for resource with given identifier')) {
+              console.error('Error getting response body:', error);
+            }
+            
+            // Still mark that we attempted to fetch the body
+            if (pendingRequests.has(matchingWebRequestId)) {
+              const request = pendingRequests.get(matchingWebRequestId);
+              if (!request.responseBody) {
+                request.responseBody = '[Response body not available]';
+              }
+              pendingRequests.set(matchingWebRequestId, request);
+            }
+          });
+      }
+    }
+    
+    // Also listen for Network.loadingFinished to retry getting response body
+    if (method === 'Network.loadingFinished') {
+      const requestId = params.requestId;
+      
+      // Try to find the corresponding webRequest
+      let matchingWebRequestId = null;
+      for (const [webRequestId, request] of pendingRequests.entries()) {
+        if (request.debuggerRequestId === requestId) {
+          matchingWebRequestId = webRequestId;
+          break;
+        }
+      }
+      
+      if (matchingWebRequestId) {
+        // Get the corresponding request
+        webViews[activeWebViewIndex].webContents.debugger.sendCommand('Network.getResponseBody', { requestId })
+          .then(response => {
+            if (pendingRequests.has(matchingWebRequestId)) {
+              const request = pendingRequests.get(matchingWebRequestId);
+              request.responseBody = response.body;
+              request.responseBodyBase64Encoded = response.base64Encoded;
+              pendingRequests.set(matchingWebRequestId, request);
+            }
+          })
+          .catch(error => {
+            // Don't log for common errors (no response body available)
+            if (!error.message.includes('No resource with given identifier found') && 
+                !error.message.includes('No data found for resource with given identifier')) {
+              console.error('Error getting response body on loading finished:', error);
+            }
+          });
+      }
+    }
+  });
+
+  // Enable network debugging
+  webViews[activeWebViewIndex].webContents.debugger.sendCommand('Network.enable');
+  
   return webViews[activeWebViewIndex];
 }
 

@@ -88,17 +88,26 @@ function formatHTTPRequest(request) {
     });
   }
   
-  // Body
-  if (request.uploadData && request.uploadData.length > 0) {
-    result += `<div class="code-line">
+  // Add empty line separator between headers and body
+  result += `<div class="code-line">
     <span class="line-number">${lineCount++}</span>
     <span class="line-content"></span>
   </div>`;
-    
+  
+  // Body from uploadData
+  if (request.uploadData && request.uploadData.length > 0) {
     const data = request.uploadData[0].bytes || request.uploadData[0].data;
     if (data) {
       try {
-        let body = data.toString();
+        let body;
+        // Check if data is a Uint8Array or similar binary format (showing as comma-separated numbers)
+        if (data.toString().match(/^\d+(,\d+)*$/)) {
+          // Convert comma-separated ASCII codes to a string
+          body = String.fromCharCode(...data.toString().split(',').map(code => parseInt(code, 10)));
+        } else {
+          body = data.toString();
+        }
+        
         if (body.startsWith('{') || body.startsWith('[')) {
           // Try to parse as JSON
           const jsonObj = JSON.parse(body);
@@ -118,12 +127,66 @@ function formatHTTPRequest(request) {
   </div>`;
         }
       } catch (e) {
+        console.error('Error formatting request body:', e);
         result += `<div class="code-line">
     <span class="line-number">${lineCount++}</span>
     <span class="line-content">${data}</span>
   </div>`;
       }
     }
+  } 
+  // Body from requestBody
+  else if (request.requestBody) {
+    let body = request.requestBody;
+    
+    // Check if the body is a comma-separated list of ASCII codes
+    if (typeof body === 'string' && body.match(/^\d+(,\d+)*$/)) {
+      try {
+        // Convert comma-separated ASCII codes to a string
+        body = String.fromCharCode(...body.split(',').map(code => parseInt(code, 10)));
+      } catch (e) {
+        console.error('Error converting ASCII codes to string:', e);
+      }
+    }
+    
+    // Try to parse as JSON for pretty display
+    if (body.startsWith('{') || body.startsWith('[')) {
+      try {
+        const jsonObj = JSON.parse(body);
+        const formatted = formatJSON(jsonObj);
+        const lines = formatted.split('\n');
+        
+        lines.forEach(line => {
+          result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${syntaxHighlightJSON(line)}</span>
+  </div>`;
+        });
+      } catch (e) {
+        // Not valid JSON, display as plain text
+        const lines = body.split('\n');
+        lines.forEach(line => {
+          result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${line}</span>
+  </div>`;
+        });
+      }
+    } else {
+      // Display as plain text
+      const lines = body.split('\n');
+      lines.forEach(line => {
+        result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${line}</span>
+  </div>`;
+      });
+    }
+  } else {
+    result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">[No Request Body]</span>
+  </div>`;
   }
   
   return result;
@@ -159,6 +222,75 @@ function formatHTTPResponse(response) {
     });
   }
   
+  // Add empty line separator between headers and body
+  result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content"></span>
+  </div>`;
+  
+  // Response body
+  if (response.responseBody) {
+    let body = response.responseBody;
+    
+    // Handle base64 encoded responses
+    if (response.responseBodyBase64Encoded) {
+      try {
+        body = atob(body);
+      } catch (e) {
+        console.error('Error decoding base64:', e);
+      }
+    }
+    
+    // Check if the body is a comma-separated list of ASCII codes
+    if (typeof body === 'string' && body.match(/^\d+(,\d+)*$/)) {
+      try {
+        // Convert comma-separated ASCII codes to a string
+        body = String.fromCharCode(...body.split(',').map(code => parseInt(code, 10)));
+      } catch (e) {
+        console.error('Error converting ASCII codes to string:', e);
+      }
+    }
+    
+    // Check if the content is JSON
+    if (body.startsWith('{') || body.startsWith('[')) {
+      try {
+        const jsonObj = JSON.parse(body);
+        const formatted = formatJSON(jsonObj);
+        const lines = formatted.split('\n');
+        
+        lines.forEach(line => {
+          result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${syntaxHighlightJSON(line)}</span>
+  </div>`;
+        });
+      } catch (e) {
+        // Not valid JSON, display as plain text
+        const lines = body.split('\n');
+        lines.forEach(line => {
+          result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${line}</span>
+  </div>`;
+        });
+      }
+    } else {
+      // Display as plain text
+      const lines = body.split('\n');
+      lines.forEach(line => {
+        result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">${line}</span>
+  </div>`;
+      });
+    }
+  } else {
+    result += `<div class="code-line">
+    <span class="line-number">${lineCount++}</span>
+    <span class="line-content">[No Response Body]</span>
+  </div>`;
+  }
+  
   return result;
 }
 
@@ -179,11 +311,42 @@ function formatRawRequest(details) {
   
   raw += '\n';
   
+  // Add body from upload data
   if (details.uploadData && details.uploadData.length > 0) {
     const data = details.uploadData[0].bytes || details.uploadData[0].data;
     if (data) {
-      raw += data.toString();
+      try {
+        // Check if data is a Uint8Array or similar binary format (showing as comma-separated numbers)
+        if (data.toString().match(/^\d+(,\d+)*$/)) {
+          // Convert comma-separated ASCII codes to a string
+          raw += String.fromCharCode(...data.toString().split(',').map(code => parseInt(code, 10)));
+        } else {
+          raw += data.toString();
+        }
+      } catch (e) {
+        console.error('Error converting request body in raw format:', e);
+        raw += data.toString();
+      }
     }
+  }
+  // Add body from requestBody
+  else if (details.requestBody) {
+    try {
+      let body = details.requestBody;
+      
+      // Check if the body is a comma-separated list of ASCII codes
+      if (typeof body === 'string' && body.match(/^\d+(,\d+)*$/)) {
+        // Convert comma-separated ASCII codes to a string
+        body = String.fromCharCode(...body.split(',').map(code => parseInt(code, 10)));
+      }
+      
+      raw += body;
+    } catch (e) {
+      console.error('Error converting request body in raw format:', e);
+      raw += details.requestBody;
+    }
+  } else {
+    raw += '[No Request Body]';
   }
   
   return raw;
@@ -208,7 +371,149 @@ function formatRawResponse(details) {
     });
   }
   
+  raw += '\n';
+  
+  if (details.responseBody) {
+    let responseBodyText = details.responseBody;
+    
+    // Handle base64 encoded responses
+    if (details.responseBodyBase64Encoded) {
+      try {
+        responseBodyText = atob(responseBodyText);
+      } catch (e) {
+        console.error('Error decoding base64:', e);
+      }
+    }
+    
+    // Check if the body is a comma-separated list of ASCII codes
+    if (typeof responseBodyText === 'string' && responseBodyText.match(/^\d+(,\d+)*$/)) {
+      try {
+        // Convert comma-separated ASCII codes to a string
+        responseBodyText = String.fromCharCode(...responseBodyText.split(',').map(code => parseInt(code, 10)));
+      } catch (e) {
+        console.error('Error converting ASCII codes to string in response:', e);
+      }
+    }
+    
+    raw += responseBodyText;
+  } else {
+    raw += '[No Response Body]';
+  }
+  
   return raw;
+}
+
+// Format request body
+function formatRequestBody(details) {
+  if (!details || !details.requestBody) {
+    return '<div class="code-line"><span class="line-number">1</span><span class="line-content">[No Request Body]</span></div>';
+  }
+  
+  try {
+    let body = details.requestBody;
+    let lineCount = 1;
+    let result = '';
+    
+    // Try to parse as JSON for pretty display
+    if (body.startsWith('{') || body.startsWith('[')) {
+      try {
+        const jsonObj = JSON.parse(body);
+        const formatted = formatJSON(jsonObj);
+        const lines = formatted.split('\n');
+        
+        lines.forEach(line => {
+          result += `<div class="code-line">
+            <span class="line-number">${lineCount++}</span>
+            <span class="line-content">${syntaxHighlightJSON(line)}</span>
+          </div>`;
+        });
+      } catch (e) {
+        // Not valid JSON, display as plain text
+        const lines = body.split('\n');
+        lines.forEach(line => {
+          result += `<div class="code-line">
+            <span class="line-number">${lineCount++}</span>
+            <span class="line-content">${line}</span>
+          </div>`;
+        });
+      }
+    } else {
+      // Display as plain text
+      const lines = body.split('\n');
+      lines.forEach(line => {
+        result += `<div class="code-line">
+          <span class="line-number">${lineCount++}</span>
+          <span class="line-content">${line}</span>
+        </div>`;
+      });
+    }
+    
+    return result;
+  } catch (e) {
+    console.error('Error formatting request body:', e);
+    return '<div class="code-line"><span class="line-number">1</span><span class="line-content">[Error Formatting Request Body]</span></div>';
+  }
+}
+
+// Format response body
+function formatResponseBody(details) {
+  if (!details || !details.responseBody) {
+    return '<div class="code-line"><span class="line-number">1</span><span class="line-content">[No Response Body]</span></div>';
+  }
+  
+  try {
+    let body = details.responseBody;
+    let lineCount = 1;
+    let result = '';
+    
+    // Handle base64 encoded responses
+    if (details.responseBodyBase64Encoded) {
+      try {
+        body = atob(body);
+      } catch (e) {
+        console.error('Error decoding base64:', e);
+      }
+    }
+    
+    // Check if the content is JSON
+    if (body.startsWith('{') || body.startsWith('[')) {
+      try {
+        const jsonObj = JSON.parse(body);
+        const formatted = formatJSON(jsonObj);
+        const lines = formatted.split('\n');
+        
+        lines.forEach(line => {
+          result += `<div class="code-line">
+            <span class="line-number">${lineCount++}</span>
+            <span class="line-content">${syntaxHighlightJSON(line)}</span>
+          </div>`;
+        });
+      } catch (e) {
+        // Not valid JSON, display as plain text
+        const lines = body.split('\n');
+        lines.forEach(line => {
+          result += `<div class="code-line">
+            <span class="line-number">${lineCount++}</span>
+            <span class="line-content">${line}</span>
+          </div>`;
+        });
+      }
+    } else {
+      // Display as plain text
+      const lines = body.split('\n');
+      lines.forEach(line => {
+        result += `<div class="code-line">
+          <span class="line-number">${lineCount++}</span>
+          <span class="line-content">${line}</span>
+        </div>`;
+      });
+    }
+    
+    return result;
+  } catch (e) {
+    console.error('Error formatting response body:', e);
+    return '<div class="code-line"><span class="line-number">1</span><span class="line-content">[Error Formatting Response Body]</span></div>';
+  }
 }
 
 // Display request details

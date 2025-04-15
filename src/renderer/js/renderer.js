@@ -651,8 +651,25 @@ screenshotButton.addEventListener('click', async () => {
 
 // Listen for network reset events
 window.electronAPI.onNetworkReset(() => {
-  // Clear the network panel
+  // Clear the network panel but preserve the filter
+  const filterElement = document.getElementById('networkSearchFilter');
+  const filterValue = filterElement ? filterElement.value : '';
+  
+  // Save the filter div
+  const filterDiv = document.querySelector('.network-filter');
+  
+  // Clear the panel
   networkPanel.innerHTML = '';
+  
+  // Re-add the filter div
+  if (filterDiv) {
+    networkPanel.appendChild(filterDiv);
+    
+    // Restore the filter value
+    if (filterElement) {
+      filterElement.value = filterValue;
+    }
+  }
   
   // Clear the network requests map
   networkRequests.clear();
