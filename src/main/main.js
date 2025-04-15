@@ -155,9 +155,6 @@ function createWebContentsView(url) {
   // Apply proxy settings to the session
   settingsService.configureProxy(webViews[activeWebViewIndex].webContents.session);
   
-  // Set background color (WebContentsView has white background by default, unlike BrowserView)
-  webViews[activeWebViewIndex].setBackgroundColor("#00000000");
-  
   // Add the view to the window - following the official migration guide
   mainWindow.contentView.addChildView(webViews[activeWebViewIndex]);
   
