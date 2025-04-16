@@ -3,8 +3,12 @@ let zoomLevel = 100;
 let treeData = null;
 let currentFilter = 'all';
 let deduplicatedResources = new Map(); // Map to store deduplicated resources
+let diagramBackgroundPort = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Establish a persistent connection with the background script
+  connectToBackground();
+  
   // Add event listeners for diagram controls
   document.getElementById('refreshDiagramBtn').addEventListener('click', loadResourceData);
   document.getElementById('resetDiagramBtn').addEventListener('click', resetView);
@@ -30,6 +34,49 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initially we don't need to load diagram data as it might not be visible
   // It will be loaded when user clicks on the diagram tab
 });
+
+// Establish a persistent connection with the background script
+function connectToBackground() {
+  try {
+    // Create a unique connection ID
+    const connectionId = 'diagram_' + Date.now();
+    
+    // Connect to the background script
+    diagramBackgroundPort = chrome.runtime.connect({ name: connectionId });
+    
+    // Listen for messages from the background
+    diagramBackgroundPort.onMessage.addListener(handleBackgroundMessage);
+    
+    // Handle disconnection
+    diagramBackgroundPort.onDisconnect.addListener(() => {
+      console.log('Connection to background lost, attempting to reconnect...');
+      diagramBackgroundPort = null;
+      
+      // Attempt to reconnect after a short delay
+      setTimeout(connectToBackground, 1000);
+    });
+    
+    // Register with the background script
+    chrome.runtime.sendMessage({ action: 'register-client' }, response => {
+      if (chrome.runtime.lastError) {
+        console.log('Failed to register with background:', chrome.runtime.lastError.message);
+      } else if (response && response.registered) {
+        console.log('Successfully registered with background script');
+      }
+    });
+  } catch (error) {
+    console.error('Error connecting to background:', error);
+    diagramBackgroundPort = null;
+  }
+}
+
+// Handle messages from the background script
+function handleBackgroundMessage(message) {
+  if (message.action === 'resource-data') {
+    treeData = message.resourceData;
+    generateResourceTree(treeData.domainTree);
+  }
+}
 
 // Check if the background connection is available
 async function checkBackgroundConnection() {
@@ -59,20 +106,29 @@ async function checkBackgroundConnection() {
 // Load resource data from background
 function loadResourceData() {
   try {
-    chrome.runtime.sendMessage({ action: 'get-resource-diagram-data' }, response => {
-      if (chrome.runtime.lastError) {
-        console.error('Connection error:', chrome.runtime.lastError.message);
-        showErrorMessage('Could not connect to background page. Please refresh the extension.');
-        return;
-      }
+    if (diagramBackgroundPort) {
+      // Use persistent connection
+      diagramBackgroundPort.postMessage({ action: 'get-resource-diagram-data' });
+    } else {
+      // Attempt to reconnect first
+      connectToBackground();
       
-      if (response && response.resourceData) {
-        treeData = response.resourceData;
-        generateResourceTree(treeData.domainTree);
-      } else {
-        showErrorMessage('No resource data available. Try browsing some websites first.');
-      }
-    });
+      // Fall back to one-time message with error handling
+      chrome.runtime.sendMessage({ action: 'get-resource-diagram-data' }, response => {
+        if (chrome.runtime.lastError) {
+          console.error('Connection error:', chrome.runtime.lastError.message);
+          showErrorMessage('Could not connect to background page. Please refresh the extension.');
+          return;
+        }
+        
+        if (response && response.resourceData) {
+          treeData = response.resourceData;
+          generateResourceTree(treeData.domainTree);
+        } else {
+          showErrorMessage('No resource data available. Try browsing some websites first.');
+        }
+      });
+    }
   } catch (error) {
     console.error('Error sending message:', error);
     showErrorMessage('Connection error. Please try refreshing the page.');

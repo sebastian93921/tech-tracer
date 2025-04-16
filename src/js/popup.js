@@ -1,9 +1,13 @@
 // Store reference to the selected request
 let selectedRequestId = null;
 let requestsList = [];
+let backgroundPort = null;
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', () => {
+  // Establish a persistent connection with the background script
+  connectToBackground();
+  
   // Add event listeners
   document.getElementById('clearBtn').addEventListener('click', clearRequests);
   document.getElementById('requestFilter').addEventListener('input', filterRequests);
@@ -20,6 +24,56 @@ document.addEventListener('DOMContentLoaded', () => {
   // Setup periodic updates
   setInterval(loadRequests, 2000);
 });
+
+// Establish a persistent connection with the background script
+function connectToBackground() {
+  try {
+    // Create a unique connection ID
+    const connectionId = 'popup_' + Date.now();
+    
+    // Connect to the background script
+    backgroundPort = chrome.runtime.connect({ name: connectionId });
+    
+    // Listen for messages from the background
+    backgroundPort.onMessage.addListener(handleBackgroundMessage);
+    
+    // Handle disconnection
+    backgroundPort.onDisconnect.addListener(() => {
+      console.log('Connection to background lost, attempting to reconnect...');
+      
+      // Attempt to reconnect after a short delay
+      setTimeout(connectToBackground, 1000);
+    });
+    
+    // Register with the background script
+    chrome.runtime.sendMessage({ action: 'register-client' }, response => {
+      if (chrome.runtime.lastError) {
+        console.log('Failed to register with background:', chrome.runtime.lastError.message);
+      } else if (response && response.registered) {
+        console.log('Successfully registered with background script');
+      }
+    });
+  } catch (error) {
+    console.error('Error connecting to background:', error);
+  }
+}
+
+// Handle messages from the background script
+function handleBackgroundMessage(message) {
+  if (message.action === 'requests-data') {
+    requestsList = message.requests;
+    updateRequestList(requestsList);
+  } else if (message.action === 'requests-cleared') {
+    requestsList = [];
+    updateRequestList(requestsList);
+  } else if (message.action === 'request-details') {
+    if (message.request) {
+      showRequestDetails(message.request);
+    }
+  } else if (message.action === 'resource-data') {
+    // Handle resource diagram data if needed
+  }
+}
 
 // Setup main tab navigation
 function setupMainTabs() {
@@ -73,12 +127,27 @@ function setupDetailsTabs() {
 
 // Load requests from background page
 function loadRequests() {
-  chrome.runtime.sendMessage({ action: 'get-requests' }, response => {
-    if (response && response.requests) {
-      requestsList = response.requests;
-      updateRequestList(requestsList);
+  try {
+    if (backgroundPort) {
+      // Use the persistent connection if available
+      backgroundPort.postMessage({ action: 'get-requests' });
+    } else {
+      // Fall back to one-time messages with error handling
+      chrome.runtime.sendMessage({ action: 'get-requests' }, response => {
+        if (chrome.runtime.lastError) {
+          console.log('Error loading requests:', chrome.runtime.lastError.message);
+          
+          // Try to reconnect
+          connectToBackground();
+        } else if (response && response.requests) {
+          requestsList = response.requests;
+          updateRequestList(requestsList);
+        }
+      });
     }
-  });
+  } catch (error) {
+    console.error('Error in loadRequests:', error);
+  }
 }
 
 // Update the request list UI
@@ -211,21 +280,34 @@ function filterRequests() {
 
 // Clear all requests
 function clearRequests() {
-  chrome.runtime.sendMessage({ action: 'clear-requests' }, response => {
-    if (response && response.success) {
-      requestsList = [];
-      updateRequestList(requestsList);
-      selectedRequestId = null;
-      
-      // Clear details
-      document.getElementById('generalInfo').innerHTML = '';
-      document.getElementById('requestHeadersTable').innerHTML = '';
-      document.getElementById('responseHeadersTable').innerHTML = '';
-      
-      // Also clear resource diagram data
-      if (typeof resetView === 'function') {
-        resetView();
-      }
+  try {
+    if (backgroundPort) {
+      // Use persistent connection
+      backgroundPort.postMessage({ action: 'clear-requests' });
+    } else {
+      // Fall back to one-time message with error handling
+      chrome.runtime.sendMessage({ action: 'clear-requests' }, response => {
+        if (chrome.runtime.lastError) {
+          console.log('Error clearing requests:', chrome.runtime.lastError.message);
+          connectToBackground();
+        } else if (response && response.success) {
+          requestsList = [];
+          updateRequestList(requestsList);
+          selectedRequestId = null;
+          
+          // Clear details
+          document.getElementById('generalInfo').innerHTML = '';
+          document.getElementById('requestHeadersTable').innerHTML = '';
+          document.getElementById('responseHeadersTable').innerHTML = '';
+          
+          // Also clear resource diagram data
+          if (typeof resetView === 'function') {
+            resetView();
+          }
+        }
+      });
     }
-  });
-} 
+  } catch (error) {
+    console.error('Error in clearRequests:', error);
+  }
+}

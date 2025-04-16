@@ -3,6 +3,53 @@ const pendingRequests = new Map();
 // Map to track script-initiated requests
 const scriptApiMap = new Map();
 const requestIdMap = new Map();
+// Keep track of connected contexts
+const connectedPorts = new Map();
+
+// Safely send messages with error handling
+function safeSendMessage(message) {
+  try {
+    chrome.runtime.sendMessage(message, response => {
+      if (chrome.runtime.lastError) {
+        // Silently handle the error - recipient wasn't available
+        console.log(`Message sending failed: ${chrome.runtime.lastError.message}`);
+      }
+    });
+  } catch (error) {
+    console.log(`Error in sendMessage: ${error.message}`);
+  }
+}
+
+// Set up long-lived connections
+chrome.runtime.onConnect.addListener(port => {
+  // Store the port with an identifier
+  connectedPorts.set(port.name, port);
+  
+  port.onDisconnect.addListener(() => {
+    // Clean up when connection is closed
+    connectedPorts.delete(port.name);
+    console.log(`Port ${port.name} disconnected`);
+  });
+  
+  // Listen for messages on this port
+  port.onMessage.addListener((message) => {
+    if (message.action === 'get-requests') {
+      // Convert map to array for easier processing
+      const requests = Array.from(pendingRequests.values());
+      port.postMessage({ action: 'requests-data', requests });
+    } else if (message.action === 'clear-requests') {
+      pendingRequests.clear();
+      updateRequestCount();
+      port.postMessage({ action: 'requests-cleared', success: true });
+    } else if (message.action === 'get-resource-diagram-data') {
+      const resourceData = prepareNetworkFlowData();
+      port.postMessage({ action: 'resource-data', resourceData });
+    } else if (message.action === 'get-request-details') {
+      const request = pendingRequests.get(message.requestId);
+      port.postMessage({ action: 'request-details', request });
+    }
+  });
+});
 
 // Store request data
 chrome.webRequest.onBeforeRequest.addListener(
@@ -35,7 +82,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     });
     
     // Broadcast the request to any open DevTools panels
-    chrome.runtime.sendMessage({
+    safeSendMessage({
       action: 'request-started',
       requestData: pendingRequests.get(details.requestId)
     });
@@ -58,7 +105,7 @@ chrome.webRequest.onSendHeaders.addListener(
       pendingRequests.set(details.requestId, request);
       
       // Send updated data
-      chrome.runtime.sendMessage({
+      safeSendMessage({
         action: 'request-headers',
         requestId: details.requestId,
         headers: request.requestHeaders
@@ -82,7 +129,7 @@ chrome.webRequest.onHeadersReceived.addListener(
       pendingRequests.set(details.requestId, request);
       
       // Send updated data
-      chrome.runtime.sendMessage({
+      safeSendMessage({
         action: 'response-headers',
         requestId: details.requestId,
         headers: request.responseHeaders,
@@ -108,7 +155,7 @@ chrome.webRequest.onCompleted.addListener(
       pendingRequests.set(details.requestId, request);
       
       // Send updated data
-      chrome.runtime.sendMessage({
+      safeSendMessage({
         action: 'request-completed',
         requestId: details.requestId,
         requestData: request
@@ -132,7 +179,7 @@ chrome.webRequest.onErrorOccurred.addListener(
       pendingRequests.set(details.requestId, request);
       
       // Send updated data
-      chrome.runtime.sendMessage({
+      safeSendMessage({
         action: 'request-error',
         requestId: details.requestId,
         error: details.error
@@ -155,27 +202,37 @@ function formatHeaders(headers) {
 
 // Send network data to popup or devtools when requested
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === 'get-requests') {
-    // Convert map to array for easier processing
-    const requests = Array.from(pendingRequests.values());
-    sendResponse({ requests });
-    return true;
-  } else if (message.action === 'clear-requests') {
-    pendingRequests.clear();
-    updateRequestCount();
-    sendResponse({ success: true });
-    return true;
-  } else if (message.action === 'get-resource-diagram-data') {
-    const resourceData = prepareNetworkFlowData();
-    sendResponse({ resourceData });
-    return true;
-  } else if (message.action === 'get-request-details') {
-    const request = pendingRequests.get(message.requestId);
-    sendResponse({ request });
-    return true;
-  } else if (message.action === 'ping') {
-    // Simple ping-pong to check if background is available
-    sendResponse({ status: 'ok' });
+  try {
+    if (message.action === 'get-requests') {
+      // Convert map to array for easier processing
+      const requests = Array.from(pendingRequests.values());
+      sendResponse({ requests });
+      return true;
+    } else if (message.action === 'clear-requests') {
+      pendingRequests.clear();
+      updateRequestCount();
+      sendResponse({ success: true });
+      return true;
+    } else if (message.action === 'get-resource-diagram-data') {
+      const resourceData = prepareNetworkFlowData();
+      sendResponse({ resourceData });
+      return true;
+    } else if (message.action === 'get-request-details') {
+      const request = pendingRequests.get(message.requestId);
+      sendResponse({ request });
+      return true;
+    } else if (message.action === 'ping') {
+      // Simple ping-pong to check if background is available
+      sendResponse({ status: 'ok' });
+      return true;
+    } else if (message.action === 'register-client') {
+      // Client registration for better connection management
+      sendResponse({ registered: true });
+      return true;
+    }
+  } catch (error) {
+    console.error('Error handling message:', error);
+    sendResponse({ error: error.message });
     return true;
   }
   return false; // For unhandled messages
