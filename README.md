@@ -37,4 +37,7 @@ The resource diagram provides a visual representation of all network requests:
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
 MIT
