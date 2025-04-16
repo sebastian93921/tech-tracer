@@ -1,79 +1,16 @@
-# TechTracer Mini Browser
+# TechTracer
 
-It helps security researchers, and web professionals understand complex web architectures, troubleshoot network issues, and gain insights into the underlying technologies powering websites.
+It is a Chrome Extension helps security researchers, and web professionals understand complex web architectures, troubleshoot network issues, and gain insights into the underlying technologies powering websites.
 
-![preview](image.png)
+<img width="799" alt="image" src="https://github.com/user-attachments/assets/a47585ac-a1bb-4b1e-81fe-0e63e3b52485" />
+<img width="805" alt="image" src="https://github.com/user-attachments/assets/bb9822a1-96c4-4f78-9c4d-5949990fe3b5" />
+
 
 ## Features
 
 - Capture and monitor network requests from web applications
 - Detailed inspection of request and response headers
-- Network flow visualization
-- Proxy configuration support
-- Integrated browser environment
-- Command line URL argument support
-
-## Project Structure
-
-```
-tech-tracer/
-├── src/                      # Source code
-│   ├── main/                 # Main process code
-│   │   └── main.js           # Main application entry point
-│   ├── renderer/             # Renderer process code
-│   │   ├── html/             # HTML files
-│   │   └── js/               # Renderer JavaScript files
-│   ├── preload/              # Preload scripts for contextBrid
-│   └── assets/               # Static assets
-└── package.json              # Project configuration
-```
-
-## Installation
-
-1. Clone this repository
-2. Install dependencies:
-   ```
-   npm install
-   ```
-3. Start the app:
-   ```
-   npm start
-   ```
-
-## Usage
-
-### Basic Usage
-```
-npm start
-```
-
-### Open with Specific URL
-```
-npm start -- --url https://crypto.com/exchange
-```
-
-### With Electron Directly
-```
-electron . --url https://crypto.com/exchange
-```
-
-## Building
-
-To build the app for distribution:
-
-```
-npm run build
-```
-
-## Technical Details
-
-This app demonstrates monitoring and analyzing network traffic:
-
-- Uses Electron's network monitoring APIs to capture requests and responses
-- Visualizes network flow with interactive diagrams
-- Supports proxy configuration for traffic interception
-- Implements IPC (Inter-Process Communication) for secure main/renderer process communication
-- Command line arguments support for directly opening specific URLs
+- Resources visualization
 
 ## License
 
