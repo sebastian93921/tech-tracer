@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechTracer DevTools Panel</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>TechTracer Network Monitor</h1>
+    <div class="controls">
+      <button id="clearBtn" class="button">Clear Data</button>
+      <button id="diagramBtn" class="button">Resource Diagram</button>
+    </div>
+  </div>
+  
+  <div class="main-content">
+    <div class="network-panel">
+      <div class="panel-header">
+        <h2>Network Requests</h2>
+        <div class="filter-container">
+          <input type="text" id="requestFilter" placeholder="Filter requests...">
+        </div>
+      </div>
+      <div class="request-list-container">
+        <table id="requestTable">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Type</th>
+              <th>URL</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="requestList">
+            <!-- Request list will be populated here -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div class="details-panel" id="detailsPanel">
+      <div class="panel-header">
+        <h2>Request Details</h2>
+      </div>
+      <div class="details-content">
+        <div class="detail-section">
+          <div class="tabs">
+            <button class="tab-button active" data-tab="general">General</button>
+            <button class="tab-button" data-tab="requestHeaders">Request Headers</button>
+            <button class="tab-button" data-tab="responseHeaders">Response Headers</button>
+          </div>
+          <div id="general" class="tab-content active">
+            <table id="generalInfo">
+              <!-- General info will be populated here -->
+            </table>
+          </div>
+          <div id="requestHeaders" class="tab-content">
+            <table id="requestHeadersTable">
+              <!-- Request headers will be populated here -->
+            </table>
+          </div>
+          <div id="responseHeaders" class="tab-content">
+            <table id="responseHeadersTable">
+              <!-- Response headers will be populated here -->
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/panel.js"></script>
+</body>
+</html> 

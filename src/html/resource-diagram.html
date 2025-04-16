@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechTracer Resource Diagram</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>TechTracer Resource Diagram</h1>
+    <div class="controls">
+      <button id="backBtn" class="button">Back to Main Panel</button>
+      <button id="refreshBtn" class="button">Refresh</button>
+      <button id="resetBtn" class="button reset-button">Reset</button>
+    </div>
+  </div>
+
+  <div class="diagram-container">
+    <div class="filter-controls">
+      <button id="filterAll" class="filter-button active" data-filter="all">All</button>
+      <button id="filterAPI" class="filter-button" data-filter="api">
+        <div class="filter-icon" style="background-color: #4caf50;"></div>API
+      </button>
+      <button id="filterScript" class="filter-button" data-filter="script">
+        <div class="filter-icon" style="background-color: #ff9800;"></div>Script
+      </button>
+      <button id="filterHTML" class="filter-button" data-filter="html">
+        <div class="filter-icon" style="background-color: #2196f3;"></div>HTML
+      </button>
+      <button id="filterCSS" class="filter-button" data-filter="css">
+        <div class="filter-icon" style="background-color: #9c27b0;"></div>CSS
+      </button>
+      <button id="filterImage" class="filter-button" data-filter="image">
+        <div class="filter-icon" style="background-color: #e91e63;"></div>Image
+      </button>
+      <button id="filterOther" class="filter-button" data-filter="other">
+        <div class="filter-icon" style="background-color: #607d8b;"></div>Other
+      </button>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-color" style="background-color: #4caf50;"></div>GET</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #2196f3;"></div>POST</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #ff9800;"></div>PUT</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #f44336;"></div>DELETE</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #9c27b0;"></div>PATCH</div>
+      <div class="legend-item"><div class="legend-color" style="background-color: #607d8b;"></div>OPTIONS</div>
+    </div>
+    
+    <div id="resourceTree" class="resource-tree">
+      <!-- Resource tree will be populated here -->
+    </div>
+    
+    <div class="zoom-controls">
+      <button id="zoomOutBtn" class="button">-</button>
+      <span id="zoomLevel">100%</span>
+      <button id="zoomInBtn" class="button">+</button>
+    </div>
+    
+    <div id="tooltip" class="tooltip" style="display: none;"></div>
+  </div>
+
+  <script src="../js/resource-diagram.js"></script>
+</body>
+</html> 

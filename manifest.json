@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "TechTracer",
+  "version": "1.0.0",
+  "description": "An extension for monitoring and analyzing network traffic",
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "32": "src/assets/icons/icon32.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "src/html/popup.html",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "32": "src/assets/icons/icon32.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "tabs",
+    "webRequest",
+    "webNavigation",
+    "storage", 
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "src/js/background.js",
+    "type": "module"
+  },
+  "devtools_page": "src/html/devtools.html",
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["src/js/content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/assets/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+} 

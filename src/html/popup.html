@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TechTracer</title>
+  <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+  <div class="header">
+    <h1>TechTracer</h1>
+    <div class="tab-navigation">
+      <button id="requestsTabBtn" class="tab-button active">Network Requests</button>
+      <button id="diagramTabBtn" class="tab-button">Resource Diagram</button>
+    </div>
+    <div class="controls">
+      <button id="clearBtn" class="button">Clear Data</button>
+    </div>
+  </div>
+  
+  <div class="main-content">
+    <!-- Network Requests Tab -->
+    <div id="requestsTab" class="tab-content active">
+      <div class="network-panel">
+        <div class="panel-header">
+          <h2>Network Requests</h2>
+          <div class="filter-container">
+            <input type="text" id="requestFilter" placeholder="Filter requests...">
+          </div>
+        </div>
+        <div class="request-list-container">
+          <table id="requestTable">
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Status</th>
+                <th>Type</th>
+                <th>URL</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="requestList">
+              <!-- Request list will be populated here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      
+      <div class="details-panel" id="detailsPanel">
+        <div class="panel-header">
+          <h2>Request Details</h2>
+        </div>
+        <div class="details-content">
+          <div class="detail-section">
+            <div class="tabs">
+              <button class="tab-button active" data-tab="general">General</button>
+              <button class="tab-button" data-tab="requestHeaders">Request Headers</button>
+              <button class="tab-button" data-tab="responseHeaders">Response Headers</button>
+            </div>
+            <div id="general" class="tab-content active">
+              <table id="generalInfo">
+                <!-- General info will be populated here -->
+              </table>
+            </div>
+            <div id="requestHeaders" class="tab-content">
+              <table id="requestHeadersTable">
+                <!-- Request headers will be populated here -->
+              </table>
+            </div>
+            <div id="responseHeaders" class="tab-content">
+              <table id="responseHeadersTable">
+                <!-- Response headers will be populated here -->
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Resource Diagram Tab -->
+    <div id="diagramTab" class="tab-content">
+      <div class="diagram-container">
+        <div class="diagram-controls">
+          <div class="filter-controls">
+            <button id="filterAll" class="filter-button active" data-filter="all">All</button>
+            <button id="filterAPI" class="filter-button" data-filter="api">
+              <div class="filter-icon" style="background-color: #4caf50;"></div>API
+            </button>
+            <button id="filterScript" class="filter-button" data-filter="script">
+              <div class="filter-icon" style="background-color: #ff9800;"></div>Script
+            </button>
+            <button id="filterHTML" class="filter-button" data-filter="html">
+              <div class="filter-icon" style="background-color: #2196f3;"></div>HTML
+            </button>
+            <button id="filterCSS" class="filter-button" data-filter="css">
+              <div class="filter-icon" style="background-color: #9c27b0;"></div>CSS
+            </button>
+            <button id="filterImage" class="filter-button" data-filter="image">
+              <div class="filter-icon" style="background-color: #e91e63;"></div>Image
+            </button>
+            <button id="filterOther" class="filter-button" data-filter="other">
+              <div class="filter-icon" style="background-color: #607d8b;"></div>Other
+            </button>
+          </div>
+          <div class="diagram-actions">
+            <button id="refreshDiagramBtn" class="button">Refresh</button>
+            <button id="resetDiagramBtn" class="button reset-button">Reset</button>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-item"><div class="legend-color" style="background-color: #4caf50;"></div>GET</div>
+          <div class="legend-item"><div class="legend-color" style="background-color: #2196f3;"></div>POST</div>
+          <div class="legend-item"><div class="legend-color" style="background-color: #ff9800;"></div>PUT</div>
+          <div class="legend-item"><div class="legend-color" style="background-color: #f44336;"></div>DELETE</div>
+          <div class="legend-item"><div class="legend-color" style="background-color: #9c27b0;"></div>PATCH</div>
+          <div class="legend-item"><div class="legend-color" style="background-color: #607d8b;"></div>OPTIONS</div>
+        </div>
+        
+        <div id="resourceTree" class="resource-tree">
+          <!-- Resource tree will be populated here -->
+        </div>
+        
+        <div class="zoom-controls">
+          <button id="zoomOutBtn" class="button">-</button>
+          <span id="zoomLevel">100%</span>
+          <button id="zoomInBtn" class="button">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/popup.js"></script>
+  <script src="../js/resource-diagram.js"></script>
+</body>
+</html> 
