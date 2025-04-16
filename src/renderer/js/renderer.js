@@ -6,6 +6,7 @@ const launchButton = document.getElementById('launchButton');
 const reloadButton = document.querySelector('.reload-button');
 const backButton = document.querySelector('.back-button');
 const forwardButton = document.querySelector('.forward-button');
+const certificateButton = document.getElementById('certificateButton');
 const networkPanel = document.getElementById('networkPanel');
 const networkSearchFilter = document.getElementById('networkSearchFilter');
 const clearNetworkFilter = document.getElementById('clearNetworkFilter');
@@ -722,6 +723,9 @@ window.electronAPI.onNavigationUpdate(url => {
       `;
     }
   }
+  
+  // Check for SSL certificate
+  checkForCertificate();
 });
 
 // Listen for automatic technology scan results
@@ -801,4 +805,38 @@ networkSearchFilter.addEventListener('keydown', (event) => {
       firstVisibleItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
+});
+
+// Check for SSL certificate and show/hide certificate button
+async function checkForCertificate() {
+  try {
+    const result = await window.electronAPI.getCertificate();
+    
+    if (result.success && result.hasCertificate) {
+      certificateButton.style.display = 'flex';
+    } else {
+      certificateButton.style.display = 'none';
+    }
+  } catch (error) {
+    console.error('Error checking certificate:', error);
+    certificateButton.style.display = 'none';
+  }
+}
+
+// Open certificate viewer window
+async function openCertificateViewer() {
+  try {
+    const result = await window.electronAPI.openCertificateWindow();
+    
+    if (!result.success) {
+      console.error('Error opening certificate window:', result.error);
+    }
+  } catch (error) {
+    console.error('Error opening certificate window:', error);
+  }
+}
+
+// Add event listener for certificate button
+certificateButton.addEventListener('click', () => {
+  openCertificateViewer();
 }); 

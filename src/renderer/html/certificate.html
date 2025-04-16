@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Certificate Viewer</title>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <link rel="stylesheet" href="../css/certificate.css">
+</head>
+<body>
+  <div class="certificate-container">
+    <div class="certificate-header">
+      <div id="certificate-url"></div>
+    </div>
+    
+    <div class="certificate-body">
+      <div class="tabs">
+        <div class="tab active" data-target="general">General</div>
+        <div class="tab" data-target="details">Details</div>
+      </div>
+      
+      <div class="tab-content">
+        <div class="tab-pane active" id="general">
+          <div class="section">
+            <h2>Issued To</h2>
+            <div class="field-row">
+              <div class="field-label">Common Name (CN)</div>
+              <div class="field-value" id="subject-cn"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Organisation (O)</div>
+              <div class="field-value" id="subject-o"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Organisational Unit (OU)</div>
+              <div class="field-value" id="subject-ou"></div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h2>Issued By</h2>
+            <div class="field-row">
+              <div class="field-label">Common Name (CN)</div>
+              <div class="field-value" id="issuer-cn"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Organisation (O)</div>
+              <div class="field-value" id="issuer-o"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Organisational Unit (OU)</div>
+              <div class="field-value" id="issuer-ou"></div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h2>Validity Period</h2>
+            <div class="field-row">
+              <div class="field-label">Issued On</div>
+              <div class="field-value" id="valid-from"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Expires On</div>
+              <div class="field-value" id="valid-to"></div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h2>SHA-256 Fingerprints</h2>
+            <div class="field-row">
+              <div class="field-label">Certificate</div>
+              <div class="field-value fingerprint" id="fingerprint"></div>
+            </div>
+            <div class="field-row">
+              <div class="field-label">Public key</div>
+              <div class="field-value fingerprint" id="pubkey-fingerprint"></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="tab-pane" id="details">
+          <div class="json-view" id="certificate-json"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/certificate-renderer.js"></script>
+</body>
+</html> 

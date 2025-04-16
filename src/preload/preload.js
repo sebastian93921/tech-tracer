@@ -36,6 +36,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Capture screenshot of the browser view
   captureScreenshot: () => ipcRenderer.invoke('capture-screenshot'),
   
+  // Certificate functions
+  getCertificate: () => ipcRenderer.invoke('get-certificate'),
+  openCertificateWindow: () => ipcRenderer.invoke('open-certificate-window'),
+  
   // Technology scan functions
   scanTechnologies: () => ipcRenderer.invoke('scan-technologies'),
   getTechnologyCategories: () => ipcRenderer.invoke('get-technology-categories'),

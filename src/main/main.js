@@ -605,6 +605,222 @@ ipcMain.handle('load-url', (event, url) => {
   return { success: false, error: 'No active web view' };
 });
 
+// Get certificate information for active web view
+ipcMain.handle('get-certificate', async () => {
+  try {
+    if (webViews[activeWebViewIndex] && webViews[activeWebViewIndex].webContents && !webViews[activeWebViewIndex].webContents.isDestroyed()) {
+      const url = webViews[activeWebViewIndex].webContents.getURL();
+      
+      // Skip checking for certificate on non-https URLs
+      if (!url || !url.startsWith('https://')) {
+        return { success: true, hasCertificate: false };
+      }
+      
+      // For HTTPS URLs, return that a certificate exists
+      return { success: true, hasCertificate: true, url };
+    }
+    return { success: false, error: 'No active web view' };
+  } catch (error) {
+    console.error('Error getting certificate:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Handle SSL certificate viewer window
+let certificateWindow = null;
+
+// Function to open certificate viewer window
+function createCertificateWindow(certificate, url) {
+  // Close existing certificate window if it exists
+  if (certificateWindow && !certificateWindow.isDestroyed()) {
+    certificateWindow.close();
+    certificateWindow = null;
+  }
+  
+  // Create new window
+  certificateWindow = new BrowserWindow({
+    width: 600,
+    height: 700,
+    title: 'Certificate Viewer',
+    backgroundColor: '#f8f8f8',
+    webPreferences: {
+      preload: path.join(__dirname, '..', 'preload', 'certificate-preload.js'),
+      nodeIntegration: false,
+      contextIsolation: true
+    },
+    parent: mainWindow,
+    modal: false
+  });
+  
+  // Load certificate page
+  certificateWindow.loadFile(path.join(__dirname, '..', 'renderer', 'html', 'certificate.html'));
+  
+  // Pass certificate details when page is loaded
+  certificateWindow.webContents.on('did-finish-load', () => {
+    // Check if the window still exists before sending data
+    if (certificateWindow && !certificateWindow.isDestroyed()) {
+      certificateWindow.webContents.send('certificate-details', { certificate, url });
+    }
+  });
+  
+  // Clean up reference
+  certificateWindow.on('closed', () => {
+    certificateWindow = null;
+  });
+  
+  return certificateWindow;
+}
+
+// IPC handler to open certificate viewer window
+ipcMain.handle('open-certificate-window', async () => {
+  try {
+    if (webViews[activeWebViewIndex] && webViews[activeWebViewIndex].webContents && !webViews[activeWebViewIndex].webContents.isDestroyed()) {
+      const url = webViews[activeWebViewIndex].webContents.getURL();
+      
+      if (!url || !url.startsWith('https://')) {
+        return { success: false, error: 'Not an HTTPS site' };
+      }
+      
+      const parsedUrl = new URL(url);
+      
+      // Use a direct HTTPS request to get certificate info
+      const getCertificateInfo = () => {
+        return new Promise((resolve) => {
+          try {
+            // Use Node's https module to get certificate information
+            const https = require('https');
+            const options = {
+              hostname: parsedUrl.hostname,
+              port: parsedUrl.port || 443,
+              path: parsedUrl.pathname + parsedUrl.search,
+              method: 'HEAD',
+              rejectUnauthorized: false,
+              timeout: 5000
+            };
+            
+            const req = https.request(options, (res) => {
+              try {
+                const cert = res.socket.getPeerCertificate(true);
+                resolve(cert);
+              } catch (err) {
+                console.error('Error getting peer certificate:', err);
+                resolve(null);
+              }
+            });
+            
+            req.on('error', (e) => {
+              console.error('HTTPS request error:', e);
+              resolve(null);
+            });
+            
+            req.on('timeout', () => {
+              console.error('HTTPS request timeout');
+              req.destroy();
+              resolve(null);
+            });
+            
+            req.end();
+          } catch (error) {
+            console.error('Error in certificate request:', error);
+            resolve(null);
+          }
+        });
+      };
+      
+      // Get the certificate info
+      const certInfo = await getCertificateInfo();
+      
+      // Format the certificate data
+      const formatCertificateData = (cert) => {
+        if (!cert) return null;
+        
+        try {
+          // Parse subject and issuer fields
+          const parseNameFields = (name) => {
+            if (!name) return {};
+            
+            // Handle different formats of certificate info
+            if (typeof name === 'object') return name;
+            
+            // Typically comes in format: CN=example.com,O=Example Inc,OU=Web
+            const fields = {};
+            name.split(',').forEach(part => {
+              const [key, value] = part.trim().split('=');
+              if (key && value) {
+                // Map keys to full names
+                switch (key.toUpperCase()) {
+                  case 'CN': fields.commonName = value; break;
+                  case 'O': fields.organization = value; break;
+                  case 'OU': fields.organizationalUnit = value; break;
+                  default: fields[key] = value;
+                }
+              }
+            });
+            return fields;
+          };
+          
+          const subject = typeof cert.subject === 'string' 
+            ? parseNameFields(cert.subject) 
+            : cert.subject || {};
+            
+          const issuer = typeof cert.issuer === 'string'
+            ? parseNameFields(cert.issuer)
+            : cert.issuer || {};
+          
+          return {
+            subject: {
+              commonName: subject.commonName || parsedUrl.hostname,
+              organization: subject.organization || subject.O || '<Not part of certificate>',
+              organizationalUnit: subject.organizationalUnit || subject.OU || '<Not part of certificate>'
+            },
+            issuer: {
+              commonName: issuer.commonName || issuer.CN || '<Unknown>',
+              organization: issuer.organization || issuer.O || '<Unknown>',
+              organizationalUnit: issuer.organizationalUnit || issuer.OU || '<Unknown>'
+            },
+            validFrom: cert.validFrom ? new Date(cert.validFrom).getTime() : Date.now(),
+            validTo: cert.validTo ? new Date(cert.validTo).getTime() : Date.now() + 365 * 24 * 60 * 60 * 1000,
+            fingerprint: cert.fingerprint || 'Unknown',
+            serialNumber: cert.serialNumber || 'Unknown',
+            pubKeyFingerprint: cert.pubKeyFingerprint || cert.fingerprint || 'Unknown',
+            rawDetails: cert
+          };
+        } catch (error) {
+          console.error('Error formatting certificate data:', error);
+          return null;
+        }
+      };
+      
+      // Format the certificate
+      const certificate = formatCertificateData(certInfo) || {
+        subject: {
+          commonName: parsedUrl.hostname,
+          organization: '<Not part of certificate>',
+          organizationalUnit: '<Not part of certificate>'
+        },
+        issuer: {
+          commonName: '<Unknown>',
+          organization: '<Unknown>',
+          organizationalUnit: '<Unknown>'
+        },
+        validFrom: Date.now(),
+        validTo: Date.now() + 365 * 24 * 60 * 60 * 1000,
+        fingerprint: 'Unknown',
+        serialNumber: 'Unknown',
+        pubKeyFingerprint: 'Unknown',
+        rawDetails: { note: 'Could not retrieve certificate details' }
+      };
+      
+      createCertificateWindow(certificate, url);
+      return { success: true };
+    }
+    return { success: false, error: 'No active web view' };
+  } catch (error) {
+    console.error('Error opening certificate window:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Handle request details window
 let detailsWindow = null;
 // Handle diagram window

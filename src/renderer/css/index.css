@@ -248,7 +248,6 @@ body {
 .header-value { color: #ce9178; }
 .http-method { color: #dcdcaa; }
 .http-status { color: #4ec9b0; }
-.http-version { color: #569cd6; }
 /* Right Side (Browser Area) */
 .right-side {
   flex: 1;
@@ -813,4 +812,15 @@ button svg {
 }
 .new-tab-button:hover {
   background-color: #555;
+}
+.certificate-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 4px;
+}
+
+.certificate-button svg {
+  stroke: white;
 }
