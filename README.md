@@ -8,6 +8,9 @@ A Chrome extension for monitoring and analyzing network traffic with detailed re
 
 ## Installation
 
+### Chrome Store
+[Download it from Chrome Web Store](https://chromewebstore.google.com/detail/techtracer/elgnppbfnadmgpchdccobolbcnfpjlbd)
+
 ### Development Mode
 
 1. Clone the repository
